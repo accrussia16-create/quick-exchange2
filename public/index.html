@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Exchange</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+    }
+
+    .header {
+      background: #111827;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 600px;
+      margin: 30px auto;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d6dbe5;
+      border-radius: 9px;
+      font-size: 16px;
+    }
+
+    .receive-box {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f3f6fa;
+      border-radius: 10px;
+    }
+
+    .receive-amount {
+      font-size: 25px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      padding: 14px;
+      margin-top: 22px;
+      border-radius: 9px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .upi-list {
+      margin-top: 15px;
+    }
+
+    .upi-button {
+      background: #2563eb;
+      margin-top: 10px;
+    }
+
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #eef2ff;
+    }
+
+    .contact {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .contact a {
+      display: inline-block;
+      margin: 5px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      background: #e5e7eb;
+      color: #111827;
+      text-decoration: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1 id="siteName">Quick Exchange</h1>
+    <p>Fast & Simple Exchange</p>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+
+      <h2>Exchange</h2>
+
+      <label>You Send</label>
+
+      <select id="payMethod">
+        <option value="upi">UPI</option>
+      </select>
+
+      <input
+        id="amount"
+        type="number"
+        placeholder="Enter amount"
+        min="0"
+        step="0.01"
+      >
+
+      <label>You Receive</label>
+
+      <select id="receiveMethod">
+        <option value="easypaisa">EasyPaisa</option>
+        <option value="jazzcash">JazzCash</option>
+        <option value="usdt">USDT</option>
+      </select>
+
+      <div id="receiverFields"></div>
+
+      <div class="receive-box">
+
+        <div>You will receive</div>
+
+        <div
+          id="receiveAmount"
+          class="receive-amount"
+        >
+          0
+        </div>
+
+        <div id="rateText">
+          Rate: -
+        </div>
+
+      </div>
+
+      <button
+        id="createOrder"
+      >
+        Continue
+      </button>
+
+      <div
+        id="message"
+        class="message hidden"
+      ></div>
+
+    </div>
+
+
+    <div
+      id="contact"
+      class="contact"
+    ></div>
+
+  </div>
+
+
+<script>
+
+let config = null;
+
+
+// ==========================
+// LOAD SETTINGS
+// ==========================
+
+async function loadConfig() {
+
+  try {
+
+    const response =
+      await fetch("/api/public");
+
+    config =
+      await response.json();
+
+
+    document.getElementById(
+      "siteName"
+    ).textContent =
+      config.siteName;
+
+
+    setupMethods();
+
+    updateReceiverFields();
+
+    calculate();
+
+
+  } catch (error) {
+
+    showMessage(
+      "Unable to load exchange settings."
+    );
+
+  }
+
+}
+
+
+// ==========================
+// METHODS
+// ==========================
+
+function setupMethods() {
+
+  const select =
+    document.getElementById(
+      "receiveMethod"
+    );
+
+  select.innerHTML = "";
+
+
+  const methods = [
+    ["easypaisa", "EasyPaisa"],
+    ["jazzcash", "JazzCash"],
+    ["usdt", "USDT"]
+  ];
+
+
+  methods.forEach(
+    ([value, label]) => {
+
+      if (
+        config.methods &&
+        config.methods[value] === false
+      ) {
+        return;
+      }
+
+      const option =
+        document.createElement("option");
+
+      option.value = value;
+      option.textContent = label;
+
+      select.appendChild(option);
+
+    }
+  );
+
+}
+
+
+// ==========================
+// RECEIVER FIELDS
+// ==========================
+
+function updateReceiverFields() {
+
+  const method =
+    document.getElementById(
+      "receiveMethod"
+    ).value;
+
+
+  const box =
+    document.getElementById(
+      "receiverFields"
+    );
+
+
+  if (method === "easypaisa") {
+
+    box.innerHTML = `
+      <label>EasyPaisa Number</label>
+      <input
+        id="receiverNumber"
+        type="text"
+        placeholder="03XXXXXXXXX"
+      >
+
+      <label>Account Name</label>
+      <input
+        id="receiverName"
+        type="text"
+        placeholder="Account name"
+      >
+    `;
+
+  }
+
+
+  else if (method === "jazzcash") {
+
+    box.innerHTML = `
+      <label>JazzCash Number</label>
+      <input
+        id="receiverNumber"
+        type="text"
+        placeholder="03XXXXXXXXX"
+      >
+
+      <label>Account Name</label>
+      <input
+        id="receiverName"
+        type="text"
+        placeholder="Account name"
+      >
+    `;
+
+  }
+
+
+  else if (method === "usdt") {
+
+    box.innerHTML = `
+      <label>USDT Wallet Address</label>
+
+      <input
+        id="receiverWallet"
+        type="text"
+        placeholder="Enter wallet address"
+      >
+
+      <label>Network</label>
+
+      <select id="receiverNetwork">
+        <option value="TRC20">TRC20</option>
+        <option value="BEP20">BEP20</option>
+        <option value="ERC20">ERC20</option>
+      </select>
+    `;
+
+  }
+
+
+  calculate();
+
+}
+
+
+// ==========================
+// CALCULATOR
+// ==========================
+
+function calculate() {
+
+  if (!config) {
+    return;
+  }
+
+
+  const amount =
+    Number(
+      document.getElementById(
+        "amount"
+      ).value
+    );
+
+
+  const method =
+    document.getElementById(
+      "receiveMethod"
+    ).value;
+
+
+  const rate =
+    Number(
+      config.rates[method] || 0
+    );
+
+
+  if (
+    !amount ||
+    amount <= 0 ||
+    !rate
+  ) {
+
+    document.getElementById(
+      "receiveAmount"
+    ).textContent = "0";
+
+    document.getElementById(
+      "rateText"
+    ).textContent = "Rate: -";
+
+    return;
+  }
+
+
+  const feePercent =
+    Number(
+      config.feePercent || 0
+    );
+
+
+  const gross =
+    amount * rate;
+
+
+  const fee =
+    gross *
+    (feePercent / 100);
+
+
+  const receive =
+    gross - fee;
+
+
+  document.getElementById(
+    "receiveAmount"
+  ).textContent =
+    receive.toFixed(
+      method === "usdt" ? 6 : 2
+    );
+
+
+  let unit = "";
+
+  if (method === "easypaisa") {
+    unit = "PKR";
+  }
+
+  if (method === "jazzcash") {
+    unit = "PKR";
+  }
+
+  if (method === "usdt") {
+    unit = "USDT";
+  }
+
+
+  document.getElementById(
+    "rateText"
+  ).textContent =
+    `Rate: 1 INR = ${rate} ${unit}`;
+
+}
+
+
+// ==========================
+// CREATE ORDER
+// ==========================
+
+async function createOrder() {
+
+  const amount =
+    Number(
+      document.getElementById(
+        "amount"
+      ).value
+    );
+
+
+  const method =
+    document.getElementById(
+      "receiveMethod"
+    ).value;
+
+
+  if (!amount || amount <= 0) {
+
+    showMessage(
+      "Please enter a valid amount."
+    );
+
+    return;
+  }
+
+
+  let receiver = {};
+
+
+  if (
+    method === "easypaisa" ||
+    method === "jazzcash"
+  ) {
+
+    receiver = {
+
+      number:
+        document.getElementById(
+          "receiverNumber"
+        ).value.trim(),
+
+      name:
+        document.getElementById(
+          "receiverName"
+        ).value.trim()
+
+    };
+
+
+    if (!receiver.number) {
+
+      showMessage(
+        "Please enter the receiving account number."
+      );
+
+      return;
+    }
+
+  }
+
+
+  if (method === "usdt") {
+
+    receiver = {
+
+      wallet:
+        document.getElementById(
+          "receiverWallet"
+        ).value.trim(),
+
+      network:
+        document.getElementById(
+          "receiverNetwork"
+        ).value
+
+    };
+
+
+    if (!receiver.wallet) {
+
+      showMessage(
+        "Please enter your USDT wallet address."
+      );
+
+      return;
+    }
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/orders",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              payMethod: "upi",
+              receiveMethod: method,
+              amount: amount,
+              receiver: receiver
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      showMessage(
+        data.error ||
+        "Unable to create order."
+      );
+
+      return;
+    }
+
+
+    window.location.href =
+      `/order?id=${encodeURIComponent(
+        data.order.id
+      )}`;
+
+
+  } catch (error) {
+
+    showMessage(
+      "Connection error. Please try again."
+    );
+
+  }
+
+}
+
+
+// ==========================
+// MESSAGE
+// ==========================
+
+function showMessage(text) {
+
+  const box =
+    document.getElementById(
+      "message"
+    );
+
+  box.textContent = text;
+
+  box.classList.remove(
+    "hidden"
+  );
+
+}
+
+
+// ==========================
+// EVENTS
+// ==========================
+
+document.getElementById(
+  "amount"
+).addEventListener(
+  "input",
+  calculate
+);
+
+
+document.getElementById(
+  "receiveMethod"
+).addEventListener(
+  "change",
+  updateReceiverFields
+);
+
+
+document.getElementById(
+  "createOrder"
+).addEventListener(
+  "click",
+  createOrder
+);
+
+
+// ==========================
+// CONTACT
+// ==========================
+
+function setupContact() {
+
+  if (!config || !config.contact) {
+    return;
+  }
+
+
+  const box =
+    document.getElementById(
+      "contact"
+    );
+
+
+  let html = "";
+
+
+  if (config.contact.whatsapp) {
+
+    html += `
+      <a
+        href="${config.contact.whatsapp}"
+        target="_blank"
+        rel="noopener"
+      >
+        WhatsApp
+      </a>
+    `;
+
+  }
+
+
+  if (config.contact.telegram) {
+
+    html += `
+      <a
+        href="${config.contact.telegram}"
+        target="_blank"
+        rel="noopener"
+      >
+        Telegram
+      </a>
+    `;
+
+  }
+
+
+  box.innerHTML = html;
+
+}
+
+
+// Start
+loadConfig();
+
+</script>
+
+</body>
+</html>

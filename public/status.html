@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Order Status - Quick Exchange</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+    }
+
+    .header {
+      background: #111827;
+      color: white;
+      text-align: center;
+      padding: 22px;
+    }
+
+    .header h1 {
+      margin: 0;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 600px;
+      margin: 30px auto;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 5px 25px rgba(0,0,0,.08);
+      margin-bottom: 20px;
+    }
+
+    .order-id {
+      padding: 13px;
+      background: #eef2ff;
+      border-radius: 8px;
+      font-weight: bold;
+      word-break: break-all;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 13px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .label {
+      color: #6b7280;
+    }
+
+    .value {
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 16px;
+      text-align: center;
+      border-radius: 10px;
+      background: #f3f4f6;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .processing {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .completed {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 20px;
+      border: 0;
+      border-radius: 9px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .error {
+      color: #b91c1c;
+      text-align: center;
+    }
+
+    .small {
+      color: #6b7280;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>Quick Exchange</h1>
+    <p>Order Status</p>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+
+      <h2>Your Order</h2>
+
+      <div
+        class="order-id"
+        id="orderId"
+      >
+        Loading...
+      </div>
+
+      <div
+        id="status"
+        class="status"
+      >
+        Loading...
+      </div>
+
+    </div>
+
+
+    <div
+      class="card"
+      id="details"
+    >
+
+      <h2>Order Details</h2>
+
+      <div class="row">
+        <span class="label">
+          You Send
+        </span>
+
+        <span
+          class="value"
+          id="sendAmount"
+        >
+          -
+        </span>
+      </div>
+
+
+      <div class="row">
+        <span class="label">
+          Receive Method
+        </span>
+
+        <span
+          class="value"
+          id="receiveMethod"
+        >
+          -
+        </span>
+      </div>
+
+
+      <div class="row">
+        <span class="label">
+          Exchange Rate
+        </span>
+
+        <span
+          class="value"
+          id="rate"
+        >
+          -
+        </span>
+      </div>
+
+
+      <div class="row">
+        <span class="label">
+          You Receive
+        </span>
+
+        <span
+          class="value"
+          id="receiveAmount"
+        >
+          -
+        </span>
+      </div>
+
+
+      <div class="row">
+        <span class="label">
+          Payment Reference
+        </span>
+
+        <span
+          class="value"
+          id="paymentRef"
+        >
+          Not submitted
+        </span>
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h3>What happens next?</h3>
+
+      <p class="small">
+        Your payment is manually reviewed by our
+        team. Once the payment is verified, your
+        order will be processed.
+      </p>
+
+      <a
+        href="/"
+        class="button"
+      >
+        Back to Exchange
+      </a>
+
+    </div>
+
+
+    <div
+      id="error"
+      class="error"
+    ></div>
+
+  </div>
+
+
+<script>
+
+const params =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const orderId =
+  params.get("id");
+
+
+function formatMethod(method) {
+
+  const names = {
+
+    easypaisa: "EasyPaisa",
+
+    jazzcash: "JazzCash",
+
+    usdt: "USDT"
+
+  };
+
+
+  return (
+    names[method] ||
+    method
+  );
+
+}
+
+
+function formatStatus(status) {
+
+  const names = {
+
+    pending: "Pending",
+
+    processing: "Processing",
+
+    completed: "Completed",
+
+    rejected: "Rejected"
+
+  };
+
+
+  return (
+    names[status] ||
+    status
+  );
+
+}
+
+
+async function loadStatus() {
+
+  if (!orderId) {
+
+    document.getElementById(
+      "error"
+    ).textContent =
+      "No order ID was provided.";
+
+    return;
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/orders/${encodeURIComponent(orderId)}`
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      document.getElementById(
+        "error"
+      ).textContent =
+        data.error ||
+        "Order not found.";
+
+      return;
+    }
+
+
+    const order =
+      data.order;
+
+
+    document.getElementById(
+      "orderId"
+    ).textContent =
+      order.id;
+
+
+    document.getElementById(
+      "sendAmount"
+    ).textContent =
+      `${order.sendAmount} INR`;
+
+
+    document.getElementById(
+      "receiveMethod"
+    ).textContent =
+      formatMethod(
+        order.receiveMethod
+      );
+
+
+    let unit = "PKR";
+
+
+    if (
+      order.receiveMethod ===
+      "usdt"
+    ) {
+
+      unit = "USDT";
+
+    }
+
+
+    document.getElementById(
+      "rate"
+    ).textContent =
+      `1 INR = ${order.rate} ${unit}`;
+
+
+    document.getElementById(
+      "receiveAmount"
+    ).textContent =
+      `${order.receiveAmount} ${unit}`;
+
+
+    document.getElementById(
+      "paymentRef"
+    ).textContent =
+      order.paymentRef ||
+      "Not submitted";
+
+
+    const statusBox =
+      document.getElementById(
+        "status"
+      );
+
+
+    statusBox.textContent =
+      formatStatus(
+        order.status
+      );
+
+
+    statusBox.className =
+      "status " +
+      order.status;
+
+
+  } catch {
+
+    document.getElementById(
+      "error"
+    ).textContent =
+      "Unable to connect to the server.";
+
+  }
+
+}
+
+
+loadStatus();
+
+</script>
+
+</body>
+</html>

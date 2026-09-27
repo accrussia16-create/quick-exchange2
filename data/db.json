@@ -1,0 +1,24 @@
+{
+  "settings": {
+    "siteName": "Quick Exchange",
+    "rates": {
+      "easypaisa": 3.2,
+      "jazzcash": 3.18,
+      "usdt": 0.0115
+    },
+    "feePercent": 0,
+    "minAmount": 100,
+    "maxAmount": 100000,
+    "methods": {
+      "easypaisa": true,
+      "jazzcash": true,
+      "usdt": true
+    },
+    "contact": {
+      "whatsapp": "",
+      "telegram": ""
+    }
+  },
+  "upiLinks": [],
+  "orders": []
+}
