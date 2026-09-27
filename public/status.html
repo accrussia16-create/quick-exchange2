@@ -1,452 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Order Status - Quick Exchange</title>
+<meta charset="UTF-8">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #172033;
-    }
+<title>
+Order Status — Quick Exchange
+</title>
 
-    .header {
-      background: #111827;
-      color: white;
-      text-align: center;
-      padding: 22px;
-    }
+<style>
 
-    .header h1 {
-      margin: 0;
-    }
+:root{
+--bg:#06111f;
+--card:#0c1c2e;
+--border:#19334d;
+--text:#f1f7ff;
+--muted:#8fa5ba;
+--primary:#20c7d9;
+--danger:#ff637d;
+}
 
-    .container {
-      width: 92%;
-      max-width: 600px;
-      margin: 30px auto;
-    }
+*{
+box-sizing:border-box;
+}
 
-    .card {
-      background: white;
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 5px 25px rgba(0,0,0,.08);
-      margin-bottom: 20px;
-    }
+body{
+margin:0;
+background:
+radial-gradient(
+circle at 85% 0%,
+#12375a,
+transparent 35%
+),
+#06111f;
+color:var(--text);
+font-family:
+Inter,
+system-ui,
+sans-serif;
+}
 
-    .order-id {
-      padding: 13px;
-      background: #eef2ff;
-      border-radius: 8px;
-      font-weight: bold;
-      word-break: break-all;
-    }
+a{
+color:var(--muted);
+text-decoration:none;
+}
 
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      padding: 13px 0;
-      border-bottom: 1px solid #eee;
-    }
+.container{
+max-width:760px;
+margin:auto;
+padding:30px 20px;
+}
 
-    .row:last-child {
-      border-bottom: 0;
-    }
+.logo{
+font-weight:900;
+color:white;
+}
 
-    .label {
-      color: #6b7280;
-    }
+.logo span{
+color:var(--primary);
+}
 
-    .value {
-      font-weight: bold;
-      text-align: right;
-    }
+.card{
+margin-top:35px;
+background:var(--card);
+border:1px solid var(--border);
+border-radius:22px;
+padding:27px;
+}
 
-    .status {
-      margin-top: 20px;
-      padding: 16px;
-      text-align: center;
-      border-radius: 10px;
-      background: #f3f4f6;
-      font-size: 20px;
-      font-weight: bold;
-    }
+.row{
+display:flex;
+justify-content:space-between;
+gap:20px;
+padding:15px 0;
+border-bottom:1px solid var(--border);
+}
 
-    .pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
+.row:last-child{
+border-bottom:0;
+}
 
-    .processing {
-      background: #dbeafe;
-      color: #1e40af;
-    }
+.muted{
+color:var(--muted);
+}
 
-    .completed {
-      background: #dcfce7;
-      color: #166534;
-    }
+.status{
+padding:8px 12px;
+border-radius:999px;
+background:#14283d;
+text-transform:capitalize;
+}
 
-    .rejected {
-      background: #fee2e2;
-      color: #991b1b;
-    }
+.links{
+display:flex;
+gap:20px;
+flex-wrap:wrap;
+margin-top:25px;
+}
 
-    .button {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      margin-top: 20px;
-      border: 0;
-      border-radius: 9px;
-      background: #111827;
-      color: white;
-      font-size: 16px;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
+.error{
+color:var(--danger);
+}
 
-    .error {
-      color: #b91c1c;
-      text-align: center;
-    }
+@media(max-width:550px){
 
-    .small {
-      color: #6b7280;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-  </style>
+.row{
+flex-direction:column;
+gap:5px;
+}
+
+}
+
+</style>
+
 </head>
 
 <body>
 
-  <div class="header">
-    <h1>Quick Exchange</h1>
-    <p>Order Status</p>
-  </div>
+<div class="container">
 
-  <div class="container">
+<a
+href="/"
+class="logo"
+>
+⚡ <span>Quick Exchange</span>
+</a>
 
-    <div class="card">
+<div
+id="app"
+class="card"
+>
+Loading...
+</div>
 
-      <h2>Your Order</h2>
-
-      <div
-        class="order-id"
-        id="orderId"
-      >
-        Loading...
-      </div>
-
-      <div
-        id="status"
-        class="status"
-      >
-        Loading...
-      </div>
-
-    </div>
-
-
-    <div
-      class="card"
-      id="details"
-    >
-
-      <h2>Order Details</h2>
-
-      <div class="row">
-        <span class="label">
-          You Send
-        </span>
-
-        <span
-          class="value"
-          id="sendAmount"
-        >
-          -
-        </span>
-      </div>
-
-
-      <div class="row">
-        <span class="label">
-          Receive Method
-        </span>
-
-        <span
-          class="value"
-          id="receiveMethod"
-        >
-          -
-        </span>
-      </div>
-
-
-      <div class="row">
-        <span class="label">
-          Exchange Rate
-        </span>
-
-        <span
-          class="value"
-          id="rate"
-        >
-          -
-        </span>
-      </div>
-
-
-      <div class="row">
-        <span class="label">
-          You Receive
-        </span>
-
-        <span
-          class="value"
-          id="receiveAmount"
-        >
-          -
-        </span>
-      </div>
-
-
-      <div class="row">
-        <span class="label">
-          Payment Reference
-        </span>
-
-        <span
-          class="value"
-          id="paymentRef"
-        >
-          Not submitted
-        </span>
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <h3>What happens next?</h3>
-
-      <p class="small">
-        Your payment is manually reviewed by our
-        team. Once the payment is verified, your
-        order will be processed.
-      </p>
-
-      <a
-        href="/"
-        class="button"
-      >
-        Back to Exchange
-      </a>
-
-    </div>
-
-
-    <div
-      id="error"
-      class="error"
-    ></div>
-
-  </div>
-
+</div>
 
 <script>
 
-const params =
-  new URLSearchParams(
-    window.location.search
-  );
-
 const orderId =
-  params.get("id");
+new URLSearchParams(
+location.search
+).get("id");
 
+const $ =
+id =>
+document.getElementById(id);
 
-function formatMethod(method) {
+function escapeHtml(value){
 
-  const names = {
-
-    easypaisa: "EasyPaisa",
-
-    jazzcash: "JazzCash",
-
-    usdt: "USDT"
-
-  };
-
-
-  return (
-    names[method] ||
-    method
-  );
-
-}
-
-
-function formatStatus(status) {
-
-  const names = {
-
-    pending: "Pending",
-
-    processing: "Processing",
-
-    completed: "Completed",
-
-    rejected: "Rejected"
-
-  };
-
-
-  return (
-    names[status] ||
-    status
-  );
+return String(value ?? "")
+.replace(
+/[&<>"']/g,
+char => ({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+}[char])
+);
 
 }
 
+function formatNumber(value){
 
-async function loadStatus() {
-
-  if (!orderId) {
-
-    document.getElementById(
-      "error"
-    ).textContent =
-      "No order ID was provided.";
-
-    return;
-  }
-
-
-  try {
-
-    const response =
-      await fetch(
-        `/api/orders/${encodeURIComponent(orderId)}`
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (!response.ok) {
-
-      document.getElementById(
-        "error"
-      ).textContent =
-        data.error ||
-        "Order not found.";
-
-      return;
-    }
-
-
-    const order =
-      data.order;
-
-
-    document.getElementById(
-      "orderId"
-    ).textContent =
-      order.id;
-
-
-    document.getElementById(
-      "sendAmount"
-    ).textContent =
-      `${order.sendAmount} INR`;
-
-
-    document.getElementById(
-      "receiveMethod"
-    ).textContent =
-      formatMethod(
-        order.receiveMethod
-      );
-
-
-    let unit = "PKR";
-
-
-    if (
-      order.receiveMethod ===
-      "usdt"
-    ) {
-
-      unit = "USDT";
-
-    }
-
-
-    document.getElementById(
-      "rate"
-    ).textContent =
-      `1 INR = ${order.rate} ${unit}`;
-
-
-    document.getElementById(
-      "receiveAmount"
-    ).textContent =
-      `${order.receiveAmount} ${unit}`;
-
-
-    document.getElementById(
-      "paymentRef"
-    ).textContent =
-      order.paymentRef ||
-      "Not submitted";
-
-
-    const statusBox =
-      document.getElementById(
-        "status"
-      );
-
-
-    statusBox.textContent =
-      formatStatus(
-        order.status
-      );
-
-
-    statusBox.className =
-      "status " +
-      order.status;
-
-
-  } catch {
-
-    document.getElementById(
-      "error"
-    ).textContent =
-      "Unable to connect to the server.";
-
-  }
+return Number(value)
+.toLocaleString(
+undefined,
+{
+maximumFractionDigits:8
+}
+);
 
 }
 
+async function loadOrder(){
 
-loadStatus();
+if(!orderId){
+
+throw new Error(
+"Missing order ID."
+);
+
+}
+
+const response =
+await fetch(
+"/api/orders/" +
+encodeURIComponent(
+orderId
+)
+);
+
+const data =
+await response.json();
+
+if(!response.ok){
+
+throw new Error(
+data.error
+);
+
+}
+
+const order =
+data.order;
+
+$("app").innerHTML = `
+
+<h1>
+Order Status
+</h1>
+
+<p class="muted">
+Your current order information.
+</p>
+
+<div class="row">
+
+<span class="muted">
+Order ID
+</span>
+
+<strong>
+${escapeHtml(
+order.id
+)}
+</strong>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Created
+</span>
+
+<span>
+${new Date(
+order.createdAt
+).toLocaleString()}
+</span>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Send Amount
+</span>
+
+<strong>
+${formatNumber(
+order.amount
+)}
+</strong>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Receive Method
+</span>
+
+<span>
+${escapeHtml(
+order.receiveMethod
+)}
+</span>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Locked Rate
+</span>
+
+<span>
+${formatNumber(
+order.lockedRate
+)}
+</span>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Receive Amount
+</span>
+
+<strong>
+${formatNumber(
+order.receiveAmount
+)}
+</strong>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Payment Reference
+</span>
+
+<span>
+${
+order.paymentReference
+?
+escapeHtml(
+order.paymentReference
+)
+:
+"Not submitted"
+}
+</span>
+
+</div>
+
+<div class="row">
+
+<span class="muted">
+Current Status
+</span>
+
+<span class="status">
+${escapeHtml(
+order.status
+)}
+</span>
+
+</div>
+
+${
+order.adminNote
+?
+`
+<div class="row">
+
+<span class="muted">
+Admin Update
+</span>
+
+<span>
+${escapeHtml(
+order.adminNote
+)}
+</span>
+
+</div>
+`
+:
+""
+}
+
+<div class="links">
+
+<a
+href="/order?id=${encodeURIComponent(
+order.id
+)}"
+>
+Open Order
+</a>
+
+<a href="/">
+Back to Exchange
+</a>
+
+</div>
+
+`;
+
+}
+
+loadOrder()
+.catch(
+error => {
+
+$("app").innerHTML = `
+
+<h2 class="error">
+${escapeHtml(
+error.message
+)}
+</h2>
+
+<div class="links">
+
+<a href="/">
+Back to Exchange
+</a>
+
+</div>
+
+`;
+
+}
+);
 
 </script>
 
 </body>
+
 </html>
