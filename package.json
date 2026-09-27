@@ -1,7 +1,7 @@
 {
   "name": "quick-exchange",
   "version": "1.0.0",
-  "description": "Simple exchange website with admin panel",
+  "description": "Quick Exchange - exchange order platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
